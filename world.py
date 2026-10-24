@@ -155,8 +155,7 @@ class World:
                        constants.MAX_PLIES.
         soft_limit   : seconds. A step() slower than this is a strike and its move is thrown away.
                        It does not apply to an agent that waits for a person (the human agent).
-        hard_limit   : seconds. No answer by then: the agent is killed and forfeits
-                       (only SubprocessRunner can enforce it).
+        hard_limit   : seconds. No answer by then: the agent is killed and forfeits.
         max_strikes  : strikes forgiven per game; the next one forfeits.
         record_moves : False leaves the per-move entries out of the record (passes are still kept).
         If an agent fails to start, the game is already over when __init__ returns

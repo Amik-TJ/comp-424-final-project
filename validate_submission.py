@@ -884,7 +884,7 @@ def dynamic_phase(report: Report, games: int, rules: dict, in_process: bool = Fa
                         and games 2k and 2k+1 share seed k, so they form a pair.
            rules      - {"allow_moves": ..., "win_length": ...}, the rule set to play under.
            in_process - True plays through InProcessRunner, for a platform where the sandbox
-                        cannot start; the time and memory limits are then not enforced.
+                        cannot start.
     Adds one dict of results to report.dynamic and two findings: the load (FAIL if the file did
     not load, WARN if __init__ comes close to its limit) and the games summary: FAIL on any
     forfeit, WARN on a strike, a note or a step close to the time limit, else PASS. The summary
@@ -901,7 +901,7 @@ def dynamic_phase(report: Report, games: int, rules: dict, in_process: bool = Fa
     finally:
         constants.configure_rules(**saved)            # a caller that validates more files keeps its own flags
     results = report.dynamic[-1]
-    label = "load (in-process, limits not enforced)" if in_process else "sandbox load"
+    label = "load (in-process)" if in_process else "sandbox load"
     if results["load_error"]:
         error, line = _error_summary(results["load_error"], report.path)
         report.add("FAIL", f"{label}: {error}", line)
@@ -981,7 +981,7 @@ def main(argv=None) -> int:
     parser.add_argument("--static_only", action="store_true", default=False,
                         help="only check the file, without playing any game")
     parser.add_argument("--in_process", action="store_true", default=False,
-                        help="play without the sandbox, where it cannot start (Windows); limits are not enforced")
+                        help="play without the sandbox, where it cannot start (Windows)")
     parser.add_argument("--json", type=str, default=None, metavar="FILE", help="also write the report to FILE as JSON")
     args = parser.parse_args(argv)
     if args.games < 1:

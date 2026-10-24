@@ -313,10 +313,8 @@ files must not be renamed and must not be compressed (for example, into a ZIP ar
 
 A late `step()` counts as a strike too. "Forfeit" means a loss for that agent and a win for the opponent.
 
-Without `--strict`, the simulator counts late moves as strikes but enforces neither the 10 s limit nor the memory
-limit. `--strict`, the validator and the tournament enforce all of them. On macOS and Windows, `--strict` prints
-`WARNING: not available on this platform: …` once for each protection the system lacks, and the games still run;
-the tournament machine (Linux) enforces every limit.
+On macOS and Windows, `--strict` prints `WARNING: not available on this platform: …` once for each protection the
+system lacks, and the games still run; the tournament machine (Linux) enforces every limit.
 
 ### Maximum memory measurements
 On Linux, measure using:

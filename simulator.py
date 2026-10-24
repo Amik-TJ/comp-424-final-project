@@ -237,8 +237,6 @@ def main(argv=None):
     rules = {"allow_moves": args.allow_moves, "win_length": args.win_length}
     constants.configure_rules(**rules)          # before any agent is imported, since agents read the flags
     import agents  # noqa: F401                  # registers the built-in agents
-    if not args.strict:
-        logger.warning("in-process mode: hard time limits are NOT enforced; use --strict for the tournament harness")
     if args.autoplay and args.display:
         logger.warning("--display is ignored in autoplay mode")
     if args.display and args.display_save:       # save every frame of the window as an image

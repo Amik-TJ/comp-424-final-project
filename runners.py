@@ -88,7 +88,7 @@ class AgentRunner(Protocol):
 
     # Ask the agent for one move. snapshot: (board, reserves), fresh copies the agent may change.
     # player: the agent's number (1 or 2); opponent: the other number. hard_limit: seconds before
-    # the agent is killed (only SubprocessRunner can enforce it). A misbehaving agent never makes
+    # the agent is killed. A misbehaving agent never makes
     # this raise: the failure comes back inside the StepResult. (Ctrl-C and the human agent's
     # `q` are the exceptions: they still end the program.)
     def step(self, snapshot, player, opponent, hard_limit) -> StepResult: ...
@@ -215,8 +215,7 @@ def agent_display_name(agent_spec: str) -> str:
 class InProcessRunner:
     """Runs the agent inside the referee's own process: step() is a plain function call.
 
-    Fast and simple. Used for development, --display and the human agent. It cannot enforce
-    the hard time limit or the memory limit: an endless loop in step() freezes the whole program.
+    Fast and simple. Used for development, --display and the human agent.
     agent_spec: a registry name ("random_agent") or a path to a .py file ("agents/student_agent.py").
     registry_name: the name a .py file is expected to register with @register_agent.
     """
@@ -274,7 +273,7 @@ class InProcessRunner:
 
         snapshot  : (board, reserves), copies the agent may change freely.
         player    : the agent's player number, 1 or 2. opponent: the other number.
-        hard_limit: ignored; a running function call cannot be stopped in-process.
+        hard_limit: unused here; kept so that both runners have the same step().
         Returns StepResult "ok" with whatever step() returned, or "error" with the traceback
         if step() raised, sys.exit() included. agent_time and wall_time are equal here.
         Only two exceptions reach the caller: KeyboardInterrupt (Ctrl-C), and SystemExit
