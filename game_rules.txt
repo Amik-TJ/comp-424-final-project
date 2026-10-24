@@ -86,7 +86,7 @@ POINTS
 
 RULES FOR YOUR AGENT
 
-34. Your agent has 2 seconds to choose each move.
+34. Your agent has 2 seconds to choose each move. This value is set as a constant in the constants.py. You can increase it for testing. But make sure it works within 2 seconds
 35. Your agent gets a strike if it is slower than 2 seconds, picks a move that is not allowed,
     or has an error. The referee then plays a random move for it.
 36. 3 strikes in one game are forgiven. The 4th strike loses the game.
