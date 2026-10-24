@@ -1,6 +1,8 @@
-"""A one-ply agent: it wins at once if it can, never hands the opponent an immediate win, and
-otherwise plays at random. It is a stronger opponent than random_agent, and an example of
-how to look ahead with the helpers."""
+"""A one-ply agent: it wins at once if it can, avoids moves that let the opponent win at once,
+and otherwise plays at random.
+
+It is a stronger opponent than random_agent, and an example of how to look ahead with the helpers.
+"""
 from __future__ import annotations
 
 import numpy as np
@@ -26,8 +28,8 @@ def after(board, reserves, player, move):
 
 @register_agent("greedy_agent")
 class GreedyAgent(Agent):
-    """Looks one move ahead: plays a winning move if there is one, and avoids moves after
-    which the opponent can win at once."""
+    """Looks one move ahead: plays a winning move if there is one, and avoids moves after which
+    the opponent can win at once."""
 
     def __init__(self):
         """Create the agent with its own random number generator."""
@@ -36,11 +38,10 @@ class GreedyAgent(Agent):
         self.rng = np.random.default_rng()
 
     def step(self, board, reserves, player, opponent):
-        """Return a Move for `player`, chosen in this order:
+        """Return a Move for `player`: a move that wins at once; otherwise a random move after
+        which the opponent cannot win at once; otherwise, if every move lets the opponent win,
+        any random legal move.
 
-          1. a move that wins at once;
-          2. a random move after which the opponent cannot win at once;
-          3. if every move lets the opponent win, any random legal move.
         Takes the same arguments as Agent.step.
         """
         moves = get_valid_moves(board, reserves, player)
@@ -52,10 +53,10 @@ class GreedyAgent(Agent):
                 return mv                           # this move wins the game now
             if w == opponent:
                 continue                            # lifting this piece uncovers the opponent's line
-            # Does the opponent have a reply that wins? any() stops at the first one it finds.
+            # Keep the move only if no reply of the opponent wins at once.
             opponent_wins = any(check_winner(after(b, r, opponent, om)[0], opponent) == opponent
                                 for om in get_valid_moves(b, r, opponent))
             if not opponent_wins:
                 safe.append(mv)
-        pool = safe or moves                        # `safe` if it is not empty, else every move
+        pool = safe or moves                        # every move loses at once: play any of them
         return pool[int(self.rng.integers(len(pool)))]

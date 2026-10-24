@@ -942,10 +942,9 @@ def format_report(report: Report) -> str:
 
     Takes:   report - a finished Report.
     Returns: a header naming the file and the interpreter, one line per finding (with its detail
-             lines indented under it), and a last
-             line "RESULT: PASS" or "RESULT: FAIL", with the warning count in parentheses
-             when there is one, e.g. "RESULT: PASS (2 warnings)". After games that passed, a
-             reminder of what a PASS means comes just before the last line.
+             lines indented under it), and a last line "RESULT: PASS" or "RESULT: FAIL", with the
+             warning count in parentheses when there is one, e.g. "RESULT: PASS (2 warnings)".
+             After games that passed, a reminder of what a PASS means comes just before the last line.
     """
     lines = [f"VALIDATION of {report.path}  (python {platform.python_version()}, numpy {np.__version__})"]
     for f in report.findings:

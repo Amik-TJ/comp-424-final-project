@@ -35,8 +35,8 @@ class StepResult(NamedTuple):
                          #   "error"        step() raised an exception -> strike, a random move is played
                          #   "hard_timeout" step() ran past the hard limit and was killed -> forfeit
                          #   "crash"        the agent's process died (os._exit, memory, segfault) -> forfeit
-    move: object         # what step() returned, NOT checked yet. Usually a helpers.Move, but it can be
-                         # None, a tuple or junk. Always None unless kind == "ok". SubprocessRunner
+    move: object         # what step() returned, not yet checked: usually a helpers.Move, but it can be
+                         # None, a tuple or any other value. Always None unless kind == "ok". SubprocessRunner
                          # rebuilds it in the referee's process: a Move (also for a subclass of Move),
                          # a tuple, None, or, for anything else, a stand-in whose repr() is the agent's.
     agent_time: float    # unit: seconds. Time spent inside agent.step() itself, measured in the agent's
@@ -72,9 +72,8 @@ class AgentInitTimeout(AgentLoadError):
 class AgentRunner(Protocol):
     """The methods the referee (World) uses to talk to one agent.
 
-    A Protocol is a checklist, not a parent class: World accepts any object that has `name`
-    and these four methods, without inheriting from AgentRunner. InProcessRunner and
-    SubprocessRunner both fit it.
+    World accepts any object that has `name` and these four methods; it does not have to inherit
+    from AgentRunner. InProcessRunner and SubprocessRunner both qualify.
     One game, in order: start() once, step() once per ply, stop() once; stats() at any time.
     A runner may also have `interactive`: True when its agent waits for a person at the keyboard
     (the human agent). World never gives such an agent a strike for being slow. A runner
@@ -123,9 +122,8 @@ def _agent_subclasses_in(module) -> list[type]:
     from agents.agent import Agent   # imported here, not at the top: see load_agent_class
     found = []
     for value in vars(module).values():
-        # isinstance() first: issubclass() raises TypeError if value is not a class.
-        # __module__ names the file a class was defined in, so imported classes, and Agent
-        # itself, fail that test. `not in found` skips an alias, e.g. `StudentAgent = MyAgent`.
+        # issubclass() needs a class, hence isinstance() first. The __module__ test leaves out
+        # imported classes and Agent itself; `not in found` skips an alias such as `StudentAgent = MyAgent`.
         if isinstance(value, type) and issubclass(value, Agent) \
                 and value.__module__ == module.__name__ and value not in found:
             found.append(value)
@@ -173,7 +171,7 @@ def load_agent_class(agent_spec: str, registry_name: str = "student_agent") -> t
     AGENT_REGISTRY.clear()
     sys.modules[module_name] = module    # some code, e.g. @dataclass, looks the module up here while it runs
     try:
-        spec.loader.exec_module(module)  # runs the file, top to bottom
+        spec.loader.exec_module(module)
         registered = dict(AGENT_REGISTRY)
     except BaseException as exc:         # not just Exception: sys.exit() at import is a load error too
         sys.modules.pop(module_name, None)
@@ -429,9 +427,8 @@ def _apply_limits(cfg: dict) -> list[str]:
 class _CappedWriter:
     """A replacement for sys.stdout / sys.stderr that writes at most `cap` bytes, then drops the rest.
 
-    print() keeps working for the agent whatever it writes: once the log is full, or the disk
-    refuses more, nothing is raised, the text is simply not stored. write() returns the full
-    length, as a real file would, so code that checks the return value is not confused.
+    print() keeps working whatever the agent writes: once the log is full, or the disk refuses
+    more, the text is dropped without an error.
     fd : the file descriptor to write to, 1 or 2, already pointed at the log file.
     cap: the most bytes this writer will ever write.
     """
@@ -441,6 +438,7 @@ class _CappedWriter:
         self.fd, self.cap, self.written = fd, cap, 0
 
     def write(self, text: str) -> int:
+        """Write `text` up to the cap and return len(text), as a real file would, even if text was dropped."""
         if not isinstance(text, str):   # the same rule as a real text stream
             raise TypeError(f"write() argument must be str, not {type(text).__name__}")
         room = self.cap - self.written
@@ -453,10 +451,11 @@ class _CappedWriter:
         return len(text)
 
     def flush(self) -> None:
-        pass   # os.write is unbuffered, so there is nothing to flush
+        """Do nothing: os.write is unbuffered."""
 
     def isatty(self) -> bool:
-        return False   # a log file, never a terminal
+        """Return False: the output goes to a log file, never to a terminal."""
+        return False
 
 
 def _redirect_output(log_path: str, cap: int) -> None:
@@ -792,7 +791,7 @@ class SubprocessRunner:
         self.init_time, self.max_rss_mb = 0.0, None    # seconds in __init__, peak memory in MB; see stats()
 
     def _kill_group(self) -> None:
-        """Kill the agent process and everything it started, at once and without appeal.
+        """Kill the agent process and every process it started.
 
         SIGKILL cannot be caught or ignored, and it goes to the whole process group the child
         made with setsid(), so a subprocess the agent spawned dies with it. Where process groups

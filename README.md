@@ -11,14 +11,13 @@ and then:
 ```bash
 source env_name/bin/activate
 ```
-to create and activate your virtual environment. On Windows, the two commands are `py -3.11 -m venv env_name` and
-`env_name\Scripts\activate`. Note: You will need to activate your virtual environment every time you start a new shell.
-It should appear as:
+to create and activate your virtual environment. Note: You will need to activate your virtual environment every time
+you start a new shell. It should appear as:
 ```
 (env_name) <username@machine>:~/your/path/to/project$
 ```
 
-Ensure that you have properly installed pip and python in your venv. To check this, you can run (on Windows, `where pip`):
+Ensure that you have properly installed pip and python in your venv. To check this, you can run:
 ```bash
 which pip
 ```
@@ -39,13 +38,12 @@ To set up the game, clone this repository and install the dependencies. Be sure 
 ```bash
 pip install -r requirements.txt
 ```
-The tournament runs Python 3.11 with numpy 1.26 (the version `requirements.txt` installs). Use Python 3.11 too: the
-validator warns when it runs on another version.
 
 ## What's in this repository
 
-You edit only `agents/student_agent.py`. The tournament runs your file with its own copy of every other file,
-so changes elsewhere have no effect on your grade.
+You edit only `agents/student_agent.py`. We grade your agent with our own copy of every other file, not yours.
+If you change any other file and your agent depends on that change, it will fail on our machine, and you will lose
+all the points for your agent.
 
 | File | What it does |
 |---|---|
@@ -94,87 +92,7 @@ The board is generated from a seed: one random obstacle cell and one random size
 `python simulator.py -h` lists every option.
 
 ## Rules
-This is a summary. [`game_rules.txt`](game_rules.txt) has the same rules in numbered points.
-
-In the boards below, `1M` is player 1's medium piece, and `2S<1M` is a stack listed from bottom to top: player 2's
-small under player 1's medium. `.` is an empty cell and `##` the obstacle. The simulator prints boards the same way.
-
-### The board and the pieces
-- The board has 4 × 4 cells. A cell is written `(row, col)`; `(0, 0)` is the top-left cell.
-- One cell is an **obstacle**. No piece can ever go there.
-- There are three sizes of pieces: small (S) < medium (M) < large (L).
-- Each player starts from 3 small, 3 medium and 3 large pieces. One piece of a randomly chosen size is then removed
-  from **both** players, so each player has 8 pieces and both players have the same pieces.
-- The board starts empty, except for the obstacle. The pieces you have not placed yet are your **reserve**.
-- The obstacle cell and the removed size come from the game's seed: the same seed always gives the same start.
-  There are 16 × 3 = 48 possible starts.
-- Nothing is hidden. Your agent sees every stack, covered pieces included, and both reserves.
-
-### A turn
-Player 1 moves first; then the players take turns. The agents swap seats from one game to the next (see Scoring),
-so each agent moves first equally often. A turn (a **ply**) is exactly one of:
-- **Place** a piece from your reserve on a cell that is empty or whose top piece is **strictly smaller**. You may
-  cover ("gobble") any smaller piece, your own or your opponent's, at any time.
-- **Move** your own top piece from the board to another cell, by the same rule (this exists because
-  `ALLOW_MOVES = True` this term). Lifting a piece shows the piece under it again. You may move a piece even while you
-  still have pieces in your reserve. A piece on the board never goes back to the reserve.
-
-Three cases that come up often:
-- A covered piece cannot move, even if it is yours, until the piece above it leaves. On a cell `1S<2M`, player 1
-  cannot move the `1S`; player 1 can cover the whole cell with a large piece.
-- A piece must go to a different cell. Lifting it and putting it back on the same cell is illegal.
-- A piece covers only strictly smaller pieces: M on M, S on M and anything on L are illegal. A large piece can never be
-  covered.
-
-### Winning
-A **line** is `WIN_LENGTH` cells in a row, a column or a diagonal whose top pieces all belong to one player. Only top
-pieces count: a covered piece counts for nobody. A line through the obstacle can never be completed. With 4 in a row
-there are 10 lines (4 rows, 4 columns, 2 diagonals); with 3 in a row there are 24.
-
-**Win check, after every move.** Let P be the player who just moved and O the opponent. Look at the top piece of
-every cell. If O has WIN_LENGTH in a row, O wins — this is how "you uncovered my line and did not cover it again"
-is scored, and it also decides the case where both players have a line. Otherwise, if P has WIN_LENGTH in a row,
-P wins. Otherwise play goes on.
-
-**Example: gobbling and revealing.** Player 1 is to move.
-```
-0    2S<1M      2L       .       .
-1        .      ##       .       .
-2        .       .       .       .
-3        .       .       .       .
-           0       1       2       3
-```
-Player 1 moves its medium from (0, 0) to (0, 2). Lifting it shows the `2S` again, so the top pieces of row 0 are now
-2, 2, 1, empty: nobody has a line, and play goes on.
-
-**Example: uncovering a line loses.** Player 1 is to move.
-```
-0    2S<1L      2M      2L      2M
-1        .       .       .       .
-2       1M      1S       .      1M
-3        .       .       .      ##
-           0       1       2       3
-```
-If player 1 lifts the `1L` from (0, 0), the `2S` under it shows, and row 0 belongs to player 2 unless the large piece
-lands back in that row.
-
-| Player 1 moves the `1L` from (0, 0) to | Result |
-|---|---|
-| (2, 2) | Player 1 completes row 2, but row 0 now reads 2, 2, 2, 2. O is checked first: **player 2 wins**. |
-| (0, 1) or (0, 3), covering a `2M` | Row 0 reads 2, 1, 2, 2 or 2, 2, 2, 1: no line, play goes on. |
-| (0, 2) | Illegal: nothing can cover a large piece. |
-
-### How a game ends
-- A player has a line: that player wins (the win check above).
-- The player to move has no legal move: that player **loses**. This is rare.
-- 100 plies (50 for each player) are played and nobody has won: a **draw**. A line made on the 100th ply still wins.
-- There is no repetition rule. Repeating the same position does not end the game; only the 100-ply limit does.
-
-### Scoring
-- A win gives 1 point, a draw 0.5, a loss 0. A forfeit is a loss.
-- Games are played in **pairs**. Both games of a pair start from the same configuration (same obstacle, same removed
-  size), and the agents swap seats, so each agent moves first once. A match between two agents has 2, 4 or 6 games;
-  the course staff will announce the number. `--autoplay` plays the same way.
+The rules of the game are in [`game_rules.txt`](game_rules.txt).
 
 **Rule flags in force this term:** `ALLOW_MOVES = True`, `WIN_LENGTH = 4` (read them from `constants`, never
 hard-code them). The simulator and the validator can also play other values (`--no-allow_moves`, `--win_length 3`)
@@ -193,7 +111,16 @@ value ∈ { 0 = EMPTY, 1 = PLAYER_1, 2 = PLAYER_2, 3 = OBSTACLE }
 - The top piece of a cell is the largest `s` with `board[r, c, s] != 0`.
 - The obstacle cell has `board[r, c, :] == 3` in all three slots.
 
-Example, the first board of the rules above:
+Example. The simulator prints a board like this. `1M` is player 1's medium piece, and `2S<1M` is a stack listed from
+bottom to top: player 2's small under player 1's medium. `.` is an empty cell and `##` the obstacle.
+```
+0    2S<1M      2L       .       .
+1        .      ##       .       .
+2        .       .       .       .
+3        .       .       .       .
+           0       1       2       3
+```
+In `board`, three of these cells are:
 ```
 board[0, 0] = [2, 1, 0]    # 2S underneath, 1M on top, no large
 board[0, 1] = [0, 0, 2]    # only a 2L
@@ -305,61 +232,69 @@ def step(self, board, reserves, player, opponent):
             return mv                           # this move wins the game now
         if w == opponent:
             continue                            # lifting this piece uncovers the opponent's line
-        # Does the opponent have a reply that wins? any() stops at the first one it finds.
+        # Keep the move only if no reply of the opponent wins at once.
         opponent_wins = any(check_winner(after(b, r, opponent, om)[0], opponent) == opponent
                             for om in get_valid_moves(b, r, opponent))
         if not opponent_wins:
             safe.append(mv)
-    pool = safe or moves                        # `safe` if it is not empty, else every move
+    pool = safe or moves                        # every move loses at once: play any of them
     return pool[int(self.rng.integers(len(pool)))]
 ```
 
 A plain alpha-beta search in Python (no move ordering, no transposition table) reaches depth 2 to 3 in the 2-second
 budget on a recent laptop; move ordering and a transposition table (`helpers.state_key`) are where the gains are.
 
-## Submission contract
-Your submission is **one file**, `student_agent.py`, plus `authors.yaml`. It must satisfy all of:
+## Submission Guidelines and Rules
+Each team submits two files: `student_agent.py` and `authors.yaml`. The file `student_agent.py` must comply with
+every rule below. The validator refers to these rules by number in its messages.
 
-| # | Requirement |
+### Rules
+
+| Rule | Requirement |
 |---|---|
-| C-01 | File name exactly `student_agent.py`, UTF-8 encoded, no BOM, ≤ 2 MB. |
-| C-02 | Valid Python for the grading interpreter: **Python 3.11**. No `match` on 3.9, no PEP 695 syntax, etc. — run the validator with the same interpreter version. |
-| C-03 | Imports only from the Python standard library, `numpy`, `helpers`, `constants`, `store`, `agents.agent`; nothing else: no `scipy`, `torch`, `numba`, `pandas`, no `world`, `simulator`, `runners`, `ui`, no files of your own. |
-| C-04 | Exactly one class decorated `@register_agent("student_agent")` — the string must be exactly that. The class name may be anything (`StudentAgent` recommended). |
-| C-05 | That class subclasses `agents.agent.Agent`; its `__init__` can be called without arguments and calls `super().__init__()`. |
-| C-06 | It implements `step(self, board, reserves, player, opponent)` (any other parameter needs a default), returning a `helpers.Move` (not `None`, not a tuple, not a coroutine). |
-| C-07 | `__init__` returns within 30 s; every `step` returns within 2.0 s wall-clock (measure with `time.perf_counter()`; leave a safety margin). |
-| C-08 | Peak memory under 500 MB. |
-| C-09 | Keep module-level code to imports, constants, and function and class definitions; any other work at import time counts toward the 30 s start-up limit, and a loop there that never ends is a FAIL. |
-| C-10 | No file I/O, no network, no extra threads or processes (the validator warns about file I/O); no `sys.exit()` / `quit()` / `os._exit()`, no `exec`, `eval`, `compile` or `input`; `sys.setrecursionlimit` at most 10 000; no monkey-patching of `helpers`, `numpy` or `constants`. |
-| C-11 | The agent must work in either seat (`player == 1` or `2`) and must only return legal moves. Illegal moves, exceptions and timeouts each cost a strike; four strikes forfeit the game. |
-| C-12 | `python validate_submission.py agents/student_agent.py` must print `PASS` with the official interpreter. The tournament runs the same checks; a `FAIL` means the agent does not enter the tournament and receives the "poor" performance grade. |
-| C-13 | The agent must respect the rule set of the game: read `ALLOW_MOVES` and `WIN_LENGTH` from `constants` (never assign them, never call `configure_rules`), return a board move only when `ALLOW_MOVES` is `True`, and evaluate lines of `WIN_LENGTH`. The tournament uses the values announced in the handout. An agent that also works with the other values is welcome but not required. |
+| C-01 | The file must be named exactly `student_agent.py`, must be encoded in UTF-8 without a byte-order mark, and must not exceed 2 MB. |
+| C-02 | The file must be valid Python 3.11, the version used for grading. Syntax introduced in later versions, such as the type parameter syntax of Python 3.12 (PEP 695), is not permitted. The validator must be run with Python 3.11. |
+| C-03 | The file may import only the Python standard library, `numpy`, and the project modules `helpers`, `constants`, `store` and `agents.agent`. All other imports are prohibited, including other packages (for example `scipy`, `torch`, `numba` and `pandas`), the other project files (`world`, `simulator`, `runners` and `ui`), and files of your own. |
+| C-04 | The file must contain exactly one class decorated with `@register_agent("student_agent")`, with exactly this string. The class may have any name; `StudentAgent` is recommended. |
+| C-05 | This class must be a subclass of `agents.agent.Agent`. Its `__init__` method must be callable without arguments and must call `super().__init__()`. |
+| C-06 | The class must implement `step(self, board, reserves, player, opponent)`. Any additional parameter must have a default value. The method must return a `helpers.Move`; it must not return `None`, a tuple or a coroutine. |
+| C-07 | `__init__` must return within 30 seconds, and every call to `step` must return within 2.0 seconds of wall-clock time. Time must be measured with `time.perf_counter()`, with a safety margin. |
+| C-08 | The peak memory use of the agent must remain below 500 MB. |
+| C-09 | Module-level code must be limited to imports, constants, and function and class definitions. Any other code executed at import time counts toward the 30-second initialization limit. A module-level loop that never ends causes the validator to report `FAIL`. |
+| C-10 | The agent must not access files or the network, and must not start additional threads or processes. The validator reports file access as a warning. The agent must not call `sys.exit()`, `quit()`, `os._exit()`, `exec`, `eval`, `compile` or `input`. A call to `sys.setrecursionlimit` must not set a limit above 10 000. The agent must not modify (monkey-patch) `helpers`, `numpy`, `constants` or `store`. |
+| C-11 | The agent must play in either seat (`player` equal to 1 or 2) and must return only legal moves. Each illegal move, exception or late move counts as one strike. A fourth strike in a game forfeits that game. |
+| C-12 | The command `python validate_submission.py agents/student_agent.py`, run with Python 3.11, must print `RESULT: PASS`. The tournament applies the same checks. An agent that receives `FAIL` does not enter the tournament and receives the "poor" performance grade. |
+| C-13 | The agent must follow the rule set of the game. It must read `ALLOW_MOVES` and `WIN_LENGTH` from `constants`, must never assign them, and must never call `configure_rules`. It may return a board move only when `ALLOW_MOVES` is `True`, and it must evaluate lines of length `WIN_LENGTH`. The tournament uses the values announced in the handout. Support for other values is welcome but not required. |
 
-**Imports.** `allowed_imports.py` holds the rule, and the validator and the tournament both use it. Your file may
-import:
-- any module of the Python standard library (`math`, `time`, `random`, `collections`, `heapq`, `itertools`, …), as
-  listed by the Python that runs it;
-- `numpy` and any part of it (`numpy.linalg`, …);
+### Permitted imports
+The import rule is defined in `allowed_imports.py`; the validator and the tournament both apply it. The file
+`student_agent.py` may import:
+- any module of the Python standard library (for example `math`, `time`, `random`, `collections`, `heapq` and
+  `itertools`), as listed by the interpreter that runs the file;
+- `numpy` and any of its submodules (for example `numpy.linalg`);
 - from this project, only `helpers`, `constants`, `store` and `agents.agent`.
 
-Nothing else: not the other files of this project (`world`, `runners`, `simulator`, `ui`, `validate_submission`,
-`allowed_imports`), not the other agents (`agents.random_agent`, `agents.greedy_agent`, …), no package the tournament
-machine does not have (`torch`, `scipy`, `matplotlib`, …), and no files of your own. A module you may import is not
-always one you may use for everything: C-10 still forbids file I/O, network, and extra threads or processes.
+All other imports are prohibited: the other files of this project (`world`, `runners`, `simulator`, `ui`,
+`validate_submission` and `allowed_imports`), the other agents (for example `agents.random_agent` and
+`agents.greedy_agent`), packages that are not installed on the tournament machine (for example `torch`, `scipy` and
+`matplotlib`), and files of your own. A permitted import does not permit every use of the module: rule C-10 still
+prohibits file access, network access, and additional threads or processes.
 
-### Check before you submit
+### Validation before submission
+Before submitting, run:
 ```bash
 python validate_submission.py agents/student_agent.py
 ```
-It must print `RESULT: PASS`. It checks the file without running it (imports, decorator, signatures, forbidden calls),
-then plays four sandboxed games against the random agent and reports your step times and strikes. Passing the
-validator does not mean your agent is good; it means the tournament can run it. On Windows, if the sandboxed games
-cannot start, add `--in_process`; the static checks are the same everywhere.
+The command must print `RESULT: PASS`. The validator first examines the file without running it (imports, decorator,
+signatures and prohibited calls). It then plays four sandboxed games against `random_agent` and reports the step
+times and strikes. A `PASS` confirms only that the tournament can run the agent; it says nothing about the agent's
+strength. If the sandboxed games cannot start on your system, add the option `--in_process`; the static checks are
+the same in both modes.
 
-### How to submit
-Submit exactly two files to the myCourses group assignment: `student_agent.py` and `authors.yaml`. Do not rename
-them and do not zip them. Before submitting, `python validate_submission.py agents/student_agent.py` must print `RESULT: PASS`.
+### Submission procedure
+Each team submits exactly two files to the myCourses group assignment: `student_agent.py` and `authors.yaml`. The
+files must not be renamed and must not be compressed (for example, into a ZIP archive). The validator must print
+`RESULT: PASS` for `student_agent.py` before the files are submitted.
 
 ## Time and memory
 
@@ -444,4 +379,5 @@ python simulator.py --player_1 student_agent --player_2 my_old_agent.py --autopl
 
 ## Issues? Bugs? Questions?
 
-Feel free to contact us in an Ed thread.
+First, open an issue on the GitHub page of this repository. If that does not solve the problem, post in an Ed
+thread, or contact fahad.amik@mail.mcgill.ca on Microsoft Teams.

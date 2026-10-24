@@ -16,7 +16,7 @@ SIZE_LETTERS = {"S": 0, "M": 1, "L": 2, "0": 0, "1": 1, "2": 2}   # what the pla
 
 
 def _numbers(words):
-    """Turn typed rows and columns into whole numbers, e.g. ["1", "2"] -> [1, 2].
+    """Return typed rows and columns as integers, e.g. ["1", "2"] -> [1, 2].
 
     Raises ValueError with a message for the player if one of them is not a number.
     """
@@ -28,11 +28,12 @@ def _numbers(words):
 
 
 def parse_human_move(text: str):
-    """Turn one line of keyboard input into a Move.
+    """Return the Move that one line of keyboard input describes.
 
     Takes:   text - one line, e.g. "p S 1 2" (place a small piece on row 1, column 2)
                     or "m 0 0 1 2" (move the top piece from (0, 0) to (1, 2)).
-    Returns: a Move. For "m" the size is 0 for now; HumanAgent.step puts in the real size.
+    Returns: a Move. For "m" the size is a placeholder 0; HumanAgent.step replaces it with the
+             size of the lifted piece.
     Raises ValueError, with a message for the player, when the line cannot be read.
     """
     parts = text.strip().split()
@@ -83,8 +84,9 @@ class HumanAgent(Agent):
     """Asks the person at the keyboard for every move."""
 
     def __init__(self):
-        """Create the agent. autoplay is False because it needs a person at the keyboard, so the
-        referee never gives it a strike for taking time to think."""
+        """Create the agent. autoplay is False: the agent needs a person at the keyboard, and the
+        referee never gives it a strike for taking time to think.
+        """
         super().__init__()
         self.name = "HumanAgent"
         self.autoplay = False

@@ -235,8 +235,8 @@ def main(argv=None):
     """
     args = get_args(argv)
     rules = {"allow_moves": args.allow_moves, "win_length": args.win_length}
-    constants.configure_rules(**rules)          # set the rule flags first, before any agent is imported
-    import agents  # noqa: F401                  # then the built-in agents register themselves
+    constants.configure_rules(**rules)          # before any agent is imported, since agents read the flags
+    import agents  # noqa: F401                  # registers the built-in agents
     if not args.strict:
         logger.warning("in-process mode: hard time limits are NOT enforced; use --strict for the tournament harness")
     if args.autoplay and args.display:
@@ -244,7 +244,7 @@ def main(argv=None):
     if args.display and args.display_save:       # save every frame of the window as an image
         import ui
         ui.SAVE_DIR = args.display_save_path
-    sim = Simulator(args)                        # every game is played under these rules
+    sim = Simulator(args)
     if args.autoplay:
         sim.autoplay()
     else:

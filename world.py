@@ -25,13 +25,13 @@ class GameRecord:
     (to_dict) and the standings and team reports are computed from those files alone. The seed
     and the move list are enough to replay the game exactly.
     """
-    seed: int                      # the game's seed. new_game(seed) rebuilds the same start position
-                                   # (obstacle and removed size), so a game can be replayed from it.
-    obstacle: tuple[int, int]      # (row, col) of the blocked cell, chosen by the seed
-    removed_size: int              # the size taken away from both players' reserves: SMALL, MEDIUM or LARGE
+    seed: int                      # the game's seed; new_game(seed) rebuilds the start position, so the
+                                   # game can be replayed from it
+    obstacle: tuple[int, int]      # (row, col) of the obstacle, chosen by the seed
+    removed_size: int              # the size removed from both players' reserves: SMALL, MEDIUM or LARGE
     rules: dict                    # the rule flags of this game, e.g. {"allow_moves": True, "win_length": 3}
-    players: dict                  # who played which seat: {"1": {"agent": "random_agent"}, "2": {...}}.
-                                   # The keys are strings because JSON keys are always strings.
+    players: dict                  # who played each seat: {"1": {"agent": "random_agent"}, "2": {...}};
+                                   # string keys, as in JSON
     game_id: str = ""              # the tournament's id for this game, e.g. "g000123"; "" elsewhere
     winner: int | None = None      # None while the game runs; then 1 or 2, or 0 for a draw
     reason: str = ""               # why it ended, e.g. "line", "revealed", "no_moves", "exhausted",
@@ -42,21 +42,20 @@ class GameRecord:
                                    # "flags", "detail"} or a pass {"ply", "player", "pass": True}
     strikes: dict = field(default_factory=lambda: {1: 0, 2: 0})  # strikes per player in this game
                                    # (illegal move, late move, exception); one more than MAX_STRIKES forfeits
-    init_time: dict = field(default_factory=lambda: {1: 0.0, 2: 0.0})   # unit: seconds. How long each
-                                   # agent took to get ready (runner.start)
-    max_rss_mb: dict = field(default_factory=lambda: {1: None, 2: None})  # unit: MB. Peak memory of each
-                                   # agent's process; None with InProcessRunner (no separate process)
+    init_time: dict = field(default_factory=lambda: {1: 0.0, 2: 0.0})   # seconds each agent took to
+                                   # get ready (runner.start)
+    max_rss_mb: dict = field(default_factory=lambda: {1: None, 2: None})  # peak memory of each agent's
+                                   # process, in MB; None with InProcessRunner, which has no process of its own
     log_paths: dict = field(default_factory=lambda: {1: None, 2: None})   # the file holding each agent's
                                    # printed output; None with InProcessRunner (prints go to the terminal)
     load_error: str | None = None  # the error text when a runner failed to start (an error or a
                                    # timeout), e.g. "P2 team_042/student_agent: ..."; else None
     forfeit_detail: str | None = None   # the error text of the ply that forfeited the game: a crash's
                                    # last 2 kB of output, or the traceback of a 4th-strike exception; else None
-    engine_version: str = "dev"    # which version of the engine played the game; the tournament puts
-                                   # the git hash here
+    engine_version: str = "dev"    # the version of the engine that played the game, e.g. a git commit hash
     started_at: str = field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%S"))  # when the record
                                    # was created, e.g. "2026-12-01T10:22:05"
-    duration_s: float = 0.0        # unit: seconds. How long the whole game took; set by World.finish
+    duration_s: float = 0.0        # seconds the whole game took; set by World.finish
 
     @property
     def plies(self) -> int:
@@ -146,7 +145,6 @@ class World:
         seed         : chooses the obstacle and the removed size (new_game), and seeds the referee's
                        own random generator for substitute moves, so a replay is identical.
         runner_1/2   : the runners (runners.py) of player 1, who moves first, and player 2.
-        Everything after the `*` must be passed by name:
         allow_moves, win_length : the rule flags of this game (win_length 3 or 4, else ValueError).
                        World passes them to every helper call and never reads constants again.
                        Defaults: the values in constants.py when world.py was imported; the
@@ -169,8 +167,8 @@ class World:
         self.rules = {"allow_moves": bool(allow_moves), "win_length": int(win_length)}
         self.seed = int(seed)
         self.board, self.reserves, self.obstacle, self.removed = new_game(self.seed)
-        # Used only to pick a random move after a strike. `seed ^ 0xA5A5` flips some bits of the
-        # seed, so this generator differs from the one that chose the obstacle.
+        # Picks the random move after a strike. The XOR gives it a stream of its own, separate
+        # from the one that chose the obstacle but still fixed by the seed.
         self.rng = np.random.default_rng(self.seed ^ 0xA5A5)
         self.runner_1, self.runner_2 = runner_1, runner_2
         self.max_plies, self.soft_limit, self.hard_limit, self.max_strikes = max_plies, soft_limit, hard_limit, max_strikes
