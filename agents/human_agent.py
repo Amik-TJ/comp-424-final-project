@@ -46,7 +46,6 @@ def parse_human_move(text: str):
         r, c = _numbers(parts[2:])
         return Move(None, (r, c), size)
     if kind == "m" and len(parts) == 5:
-        # Read the flag through the module, so the value set by configure_rules() is used.
         if not constants.ALLOW_MOVES:
             raise ValueError("board moves are disabled in this game")
         r, c, r2, c2 = _numbers(parts[1:])

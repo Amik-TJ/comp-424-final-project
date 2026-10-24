@@ -125,7 +125,6 @@ class Simulator:
         world = World(seed, make_runner(p1, a.strict), make_runner(p2, a.strict), **self.rules,
                       display=display, display_delay=a.display_delay, max_plies=a.max_plies,
                       soft_limit=a.soft_limit, hard_limit=a.hard_limit)
-        # A runner knows only after start() (inside World) whether its agent needs a person.
         if a.autoplay and any(getattr(r, "interactive", False) for r in (world.runner_1, world.runner_2)):
             raise SystemExit("error: human_agent needs a person at the keyboard; it cannot be used with --autoplay")
         record = world.play()
@@ -211,8 +210,7 @@ class Simulator:
         a = self.args
         pairs = a.autoplay_runs // 2
         specs = (a.player_1, a.player_2)
-        # One tally entry per command-line player. The same agent on both sides still gets two
-        # entries; one shared entry would count every game as both a win and a loss.
+        # One set of totals per command-line player, even when both players are the same agent.
         labels = specs if specs[0] != specs[1] else (f"{specs[0]} (player_1)", f"{specs[1]} (player_2)")
         tally = {label: {"W": 0, "D": 0, "L": 0, "as_p1_wins": 0, "times": [], "strikes": {}, "forfeits": 0}
                  for label in labels}
@@ -237,8 +235,8 @@ def main(argv=None):
     """
     args = get_args(argv)
     rules = {"allow_moves": args.allow_moves, "win_length": args.win_length}
-    constants.configure_rules(**rules)          # 1. set the rule flags first, before any agent is imported
-    import agents  # noqa: F401                  # 2. then the built-in agents register themselves
+    constants.configure_rules(**rules)          # set the rule flags first, before any agent is imported
+    import agents  # noqa: F401                  # then the built-in agents register themselves
     if not args.strict:
         logger.warning("in-process mode: hard time limits are NOT enforced; use --strict for the tournament harness")
     if args.autoplay and args.display:
@@ -246,7 +244,7 @@ def main(argv=None):
     if args.display and args.display_save:       # save every frame of the window as an image
         import ui
         ui.SAVE_DIR = args.display_save_path
-    sim = Simulator(args)                        # 3. World(..., **rules) inside
+    sim = Simulator(args)                        # every game is played under these rules
     if args.autoplay:
         sim.autoplay()
     else:

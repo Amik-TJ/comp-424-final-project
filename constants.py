@@ -39,7 +39,7 @@ ALLOW_MOVES = True           # True: a turn may also lift your own top piece and
                              # False: a turn can only place a new piece from your reserve.
 WIN_LENGTH = 4               # how many of your pieces in a row (row, column or diagonal) win: 3 or 4
 
-
+ROUNDS_PER_MATCH = 2         # how many rounds are played in one match. It will always be an even number, so each player gets to start the same number of rounds.
 # ---------------------------------------------------------------- game length
 
 MAX_PLIES = 100              # unit: plies. A ply is one player's turn, so 100 plies = 50 turns each.
@@ -72,8 +72,8 @@ RULE_FLAGS = ("allow_moves", "win_length")   # the keys of the rules dict that i
 
 def configure_rules(*, allow_moves: bool | None = None, win_length: int | None = None) -> None:
     """
-    Set the rule flags for this process (None =  leave unchanged). win_length must be 3 or 4.
-    Called exactly once, by the game, before any agent module is imported. Agents must never call it. 
+    Set the rule flags for this process (None = leave unchanged). win_length must be 3 or 4.
+    Called exactly once, by the game, before any agent module is imported. Agents must never call it.
     """
     global ALLOW_MOVES, WIN_LENGTH
     if allow_moves is not None:

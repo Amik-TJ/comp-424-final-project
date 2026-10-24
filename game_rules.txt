@@ -1,0 +1,97 @@
+GOBLET GOBBLERS: THE RULES
+
+These rules are for this setting:
+  - You need 4 in a row to win (WIN_LENGTH = 4).
+  - You may move pieces that are already on the board (ALLOW_MOVES = True).
+
+
+THE BOARD AND THE PIECES
+
+1.  Two players play. Player 1 is Blue. Player 2 is Brown.
+2.  The board has 4 rows and 4 columns, so it has 16 squares.
+3.  One square is blocked. Nobody can ever put a piece there.
+4.  There are three sizes of pieces: small, medium and large.
+5.  Each player starts with 3 small, 3 medium and 3 large pieces. Then one piece of the same
+    size is taken away from both players. So each player has 8 pieces, and both players have
+    the same pieces.
+6.  At the start of each game, the blocked square and the size that is taken away are picked
+    at random.
+7.  The board starts empty, except for the blocked square.
+8.  The pieces you have not put on the board yet are called your reserve.
+9.  Nothing is hidden. Both players can see every piece, even pieces covered by other pieces,
+    and both reserves.
+
+
+TAKING TURNS
+
+10. A match between two agents has 2, 4 or 6 rounds. One round is one game. The course staff
+    will announce the exact number. In every round, Player 1 goes first, and then the players
+    take turns. The agents swap seats after each round, so each agent is Player 1 in half of
+    the rounds. This way both agents get the same chance to go first.
+11. On your turn you do exactly one of these two things:
+      a. Put a new piece from your reserve on the board.
+      b. Move one of your pieces that is already on the board to a different square.
+12. You may move a piece even when you still have pieces in your reserve.
+
+
+COVERING PIECES
+
+13. A piece can go on an empty square.
+14. A piece can also go on top of a smaller piece. This covers the smaller piece.
+    A medium can cover a small. A large can cover a small or a medium.
+15. A piece can never go on a piece of the same size or a bigger size.
+    Nothing can cover a large.
+16. You may cover your own pieces and your opponent's pieces.
+17. One square can hold up to three pieces: a small at the bottom, then a medium, then a large.
+
+
+MOVING PIECES
+
+18. You can only move your own pieces.
+19. You can only move a piece that is on top. A covered piece cannot move until the piece on
+    top of it leaves.
+20. The piece must go to a different square. Rules 13 to 15 apply there too.
+21. When you lift a piece, the piece under it can be seen again.
+22. A piece on the board never goes back to your reserve.
+
+
+WINNING
+
+23. Get 4 of your pieces in a straight line to win. The line can go across (a row), up and
+    down (a column), or from corner to corner (a diagonal).
+24. Only the pieces on top count. A covered piece does not count for anyone.
+25. A line through the blocked square can never be finished.
+26. Be careful when you lift a piece. If the piece under it gives your opponent 4 in a row,
+    your opponent wins. This is true even if your move also gives you 4 in a row.
+27. You are safe only if your opponent has no 4 in a row after your move. For example, the
+    piece you lift can cover one of your opponent's pieces in that line.
+
+
+HOW THE GAME ENDS
+
+28. The game ends as soon as someone has 4 in a row.
+29. Each player gets at most 50 turns, so 100 turns in total. If nobody has won after 100 turns,
+    the game is a draw. A 4 in a row made on turn 100 still wins.
+30. If it is your turn and you have no move you are allowed to make, you lose.
+    (This does not happen in a normal game.)
+31. Playing the same moves again and again does not end the game. Only the 100-turn limit does.
+
+
+POINTS
+
+32. A win gives 1 point. A draw gives half a point. A loss gives 0 points.
+33. Rounds come in pairs. Both rounds of a pair start with the same board and the same pieces.
+    Only the seats are swapped.
+
+
+RULES FOR YOUR AGENT
+
+34. Your agent has 2 seconds to choose each move.
+35. Your agent gets a strike if it is slower than 2 seconds, picks a move that is not allowed,
+    or has an error. The referee then plays a random move for it.
+36. 3 strikes in one game are forgiven. The 4th strike loses the game.
+37. In the tournament, if your agent takes more than 10 seconds for one move, it loses the game.
+38. If your agent crashes, it loses the game.
+39. Your agent has 30 seconds to get ready at the start of each game. If it is slower, or has an
+    error while getting ready, it loses the game.
+40. Your agent may use up to 500 MB of memory.

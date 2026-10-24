@@ -1,4 +1,4 @@
-# Student agent — edit ONLY this file.
+"""Student agent: edit ONLY this file."""
 from agents.agent import Agent
 from store import register_agent
 from helpers import (Move, get_valid_moves, execute_move, check_winner,

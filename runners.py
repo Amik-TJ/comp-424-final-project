@@ -28,7 +28,6 @@ class StepResult(NamedTuple):
     The runner only reports what happened; it never checks whether the move is legal. The
     referee does that in World.adjudicate: play the move, give a strike, or forfeit.
     Example: StepResult("ok", Move(None, (1, 2), 0), 0.84, 0.91, None)
-    Keep the five fields in this order: SubprocessRunner.step builds it by position.
     """
     kind: str            # what happened, one of four words:
                          #   "ok"           step() returned a value; the referee still checks it
@@ -76,7 +75,6 @@ class AgentRunner(Protocol):
     A Protocol is a checklist, not a parent class: World accepts any object that has `name`
     and these four methods, without inheriting from AgentRunner. InProcessRunner and
     SubprocessRunner both fit it.
-    The `...` after each def means "no body here, only the signature".
     One game, in order: start() once, step() once per ply, stop() once; stats() at any time.
     A runner may also have `interactive`: True when its agent waits for a person at the keyboard
     (the human agent). World never gives such an agent a strike for being slow. A runner
@@ -147,7 +145,7 @@ def load_agent_class(agent_spec: str, registry_name: str = "student_agent") -> t
     AGENT_REGISTRY is left as it was, even when loading fails.
     Raises AgentLoadError: unknown name, missing file, file fails to import, or no class found.
     Not caught: a broken file inside agents/ (e.g. the student's agents/student_agent.py).
-    `import agents` below raises its own error, so the student sees the traceback, as last year.
+    `import agents` below raises its own error, so the student sees the traceback.
     Example: load_agent_class("random_agent") -> RandomAgent
     """
     # Imported here, not at the top: importing an agent runs its code, which reads the rule
@@ -346,12 +344,11 @@ def _install_import_guard() -> None:
     Python resolves an import in two stages, so two hooks are needed:
       1. builtins.__import__ is wrapped. Every import statement calls it, and it serves modules
          that are already loaded straight from sys.modules; this is the only place that catches
-         `import os`, because os is loaded long before the agent is.
+         `import runners`, because runners is loaded long before the agent is.
       2. A finder is put first in sys.meta_path. Python asks the finders, in order, where a module
-         that is not loaded yet lives; this also catches importlib.import_module("socket").
+         that is not loaded yet lives; this also catches importlib.import_module("world").
     Both hooks refuse an import only when _requested_by_student() says the student's code asked
     for it, so the imports that the host and the libraries make for themselves always work.
-    Call once, in the agent process, after the host has imported everything it trusts.
     """
     import builtins
     import importlib.abc

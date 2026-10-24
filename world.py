@@ -151,7 +151,7 @@ class World:
                        World passes them to every helper call and never reads constants again.
                        Defaults: the values in constants.py when world.py was imported; the
                        simulator and the tournament always pass them explicitly.
-        display      : draw the board in a matplotlib window (in-process runners only).
+        display      : draw the board in a matplotlib window after every ply.
         display_delay: seconds to pause after each drawn ply.
         max_plies    : the game is a draw ("ply_cap") after this many plies; it can only lower
                        constants.MAX_PLIES.

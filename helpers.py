@@ -66,7 +66,7 @@ def _build_lines(length: int) -> tuple[tuple[tuple[int, int], ...], ...]:
 
 
 # LINES[3] and LINES[4]: every way to win, for 3 in a row and for 4 in a row.
-# Students may read it (for example in an evaluation function). Never change it.
+# You may read it (for example in an evaluation function); never change it.
 LINES: dict[int, tuple[tuple[tuple[int, int], ...], ...]] = {3: _build_lines(3), 4: _build_lines(4)}
 
 # The same lines again, split into two numpy tables of numbers:
@@ -438,7 +438,7 @@ def new_game(seed: int) -> tuple[np.ndarray, np.ndarray, tuple[int, int], int]:
     """
     rng = np.random.default_rng(seed)
     cell = int(rng.integers(BOARD_SIZE * BOARD_SIZE))    # first draw the obstacle cell (0 to 15) ...
-    removed = int(rng.integers(NUM_SIZES))               # ... then the removed size; keep this order
+    removed = int(rng.integers(NUM_SIZES))               # ... then the removed size (this order sets each seed's game)
     board = np.zeros((BOARD_SIZE, BOARD_SIZE, NUM_SIZES), dtype=np.int8)
     obstacle = (cell // BOARD_SIZE, cell % BOARD_SIZE)   # cell number -> (row, col), e.g. 11 -> (2, 3)
     board[obstacle[0], obstacle[1], :] = OBSTACLE
