@@ -1,0 +1,28 @@
+# Only the starter code is tracked: everything is ignored, then the files below are let back in.
+# Course-staff files, caches, virtual environments and editor settings therefore never reach git.
+# To commit a new file of your own, add a line "!/<path>" below, or use: git add -f <path>
+
+/*
+!/.gitignore
+!/README.md
+!/requirements.txt
+!/authors.yaml
+
+!/constants.py
+!/helpers.py
+!/store.py
+!/world.py
+!/runners.py
+!/simulator.py
+!/ui.py
+!/validate_submission.py
+!/allowed_imports.py
+
+!/agents/
+/agents/*
+!/agents/__init__.py
+!/agents/agent.py
+!/agents/random_agent.py
+!/agents/greedy_agent.py
+!/agents/human_agent.py
+!/agents/student_agent.py
