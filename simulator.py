@@ -206,6 +206,8 @@ class Simulator:
 
         Pair i uses seed base_seed + i twice: once with player_1 moving first, once with
         player_2 moving first, so both agents get the same boards.
+        Raises SystemExit, with the error text, if an agent fails to load. The series stops at that
+        game, because the same failure would recur in every remaining game.
         """
         a = self.args
         pairs = a.autoplay_runs // 2
@@ -221,6 +223,11 @@ class Simulator:
             for i in range(pairs):
                 for first, second in ((0, 1), (1, 0)):          # one seed, seats swapped
                     record = self.play_one(self.base_seed + i, specs[first], specs[second])
+                    if record.load_error:
+                        game = 2 * i + first + 1
+                        raise SystemExit(f"error: an agent failed to load in game {game} of {a.autoplay_runs}. Autoplay "
+                                         f"was stopped, because the same failure would recur in every remaining game.\n"
+                                         f"{record.load_error}")
                     self._tally(tally, record, labels[first], labels[second])
         finally:
             logging.disable(logging.NOTSET)

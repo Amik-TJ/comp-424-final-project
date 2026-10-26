@@ -47,7 +47,8 @@ all the points for your agent.
 
 | File | What it does |
 |---|---|
-| `agents/student_agent.py` | **Your agent**: the only file you edit and submit. Write your search in `step()`. |
+| **`agents/student_agent.py`** | **Your agent**: the only code file you edit and submit. Write your search in `step()`. |
+| **`authors.yaml`** | **The name, McGill ID and email of each team member.** Submit it together with `student_agent.py`. |
 | `agents/agent.py` | The base class `Agent`. The docstring of `step()` explains its arguments, what to return, and the time limit. |
 | `helpers.py` | The game rules as functions for your agent: legal moves (`get_valid_moves`), playing a move (`execute_move`), the win check (`check_winner`, `check_endgame`), copying a position (`copy_state`), and the `Move` type. |
 | `constants.py` | Board size, piece sizes, time and memory limits, and the rule flags of the game (`ALLOW_MOVES`, `WIN_LENGTH`). Read them; never change them. |
@@ -59,7 +60,6 @@ all the points for your agent.
 | `allowed_imports.py` | The modules your agent may import. The validator and the tournament both use it. |
 | `store.py` | The agent registry behind `@register_agent`. |
 | `game_rules.txt` | The rules of the game in numbered points, for the rule set used this term. |
-| `authors.yaml` | Your team's names and McGill IDs. Submit it together with `student_agent.py`. |
 | `requirements.txt` | The Python packages to install. |
 
 ### Agents you can play against
@@ -158,11 +158,10 @@ cell off the board or a size other than 0, 1 or 2 raises `ValueError`.
 | `execute_move(board, reserves, player, move)` | Plays the move by changing `board` and `reserves` in place. Raises `ValueError` for an illegal move, and then changes nothing. |
 | `check_winner(board, last_mover)` | The winner right after `last_mover` moved, by the win check: the opponent if it has a line, else `last_mover` if it has one, else 0. |
 | `has_line(owners, player)` | `True` if `player` owns every cell of a line in `owners`, the first array of `top_view`. |
-| `check_endgame(board, reserves, player_to_move, ply)` | `(is_over, winner, reason)` just before `player_to_move` plays, when `ply` plies have been played. `winner` is 0 for a draw or a game that goes on; `reason` is `"line"`, `"revealed"` (the mover uncovered the opponent's line), `"ply_cap"`, `"no_moves"`, `"exhausted"` (only when `ALLOW_MOVES` is `False`), or `""` while the game goes on. |
-| `must_pass(board, reserves, player)` | `True` if `player` must skip the turn. Only possible when `ALLOW_MOVES` is `False`. |
+| `check_endgame(board, reserves, player_to_move, ply)` | `(is_over, winner, reason)` just before `player_to_move` plays, when `ply` plies have been played. `winner` is 0 for a draw or a game that goes on; `reason` is `"line"`, `"revealed"` (the mover uncovered the opponent's line), `"ply_cap"`, `"no_moves"`, or while the game goes on. |
 | `random_move(board, reserves, player, rng=None)` | A random legal move, or `None` if there is none. `rng` is an optional `np.random.default_rng(...)` generator. |
 | `copy_state(board, reserves)` | New copies of both arrays, to try a move without changing the real ones. |
-| `state_key(board, reserves, player)` | A `bytes` value for the whole position (board, reserves, player to move): a dictionary key, e.g. for a transposition table. |
+| `state_key(board, reserves, player)` | A `bytes` value for the whole position (board, reserves, player to move). |
 | `new_game(seed)` | `(board, reserves, obstacle, removed_size)`: the start of the game with that seed, as the simulator makes it. |
 | `render_text(board, reserves)` | The board and both reserves as text, as the simulator prints them. |
 | `LINES[3]`, `LINES[4]` | Every line of 3 cells (24) and of 4 cells (10), each a tuple of `(row, col)` cells. `LINES[WIN_LENGTH]` gives the lines of this game. Read it; never change it. |
@@ -170,12 +169,11 @@ cell off the board or a size other than 0, 1 or 2 raises `ValueError`.
 The functions that depend on a rule flag also take `allow_moves=` or `win_length=` keyword arguments. Leave them out:
 the default, `None`, reads the flags of the current game from `constants`.
 
-### What the referee guarantees
+### How the referee runs your agent
 1. `step` is called only when you have at least one legal move. With `ALLOW_MOVES = True` you are asked on every one of
-   your turns, so your k-th call (counting from 0) is ply `2 * k + player - 1`. With `ALLOW_MOVES = False`, a player
-   who cannot place a piece is skipped without being asked.
+   your turns, so your k-th call (counting from 0) is ply `2 * k + player - 1`.
 2. `board` and `reserves` are fresh copies at every call. You may change them and keep them.
-3. One agent object plays one whole game, so you can keep data between calls (e.g. a transposition table). A new
+3. One agent object plays one whole game, so you can keep data between calls. A new
    object is made for every game, so nothing carries over from one game to the next.
 4. `player` stays the same for the whole game.
 5. In the tournament (and with `--strict`), `step` runs in the main thread of its own process. `__init__` has already
@@ -241,12 +239,19 @@ def step(self, board, reserves, player, opponent):
     return pool[int(self.rng.integers(len(pool)))]
 ```
 
-A plain alpha-beta search in Python (no move ordering, no transposition table) reaches depth 2 to 3 in the 2-second
-budget on a recent laptop; move ordering and a transposition table (`helpers.state_key`) are where the gains are.
-
 ## Submission Guidelines and Rules
-Each team submits two files: `student_agent.py` and `authors.yaml`. The file `student_agent.py` must comply with
-every rule below. The validator refers to these rules by number in its messages.
+
+> [!IMPORTANT]
+> Please submit exactly these two files per team, with their names unchanged and without compression:
+> - **`student_agent.py`**
+> - **`authors.yaml`**
+>
+> The tournament runs all submissions together, and any other file would have to be sorted out by hand, which is not
+> feasible for the whole class. For this reason, 10 points are deducted for each additional file, and a
+> compressed submission, such as a ZIP archive, receives no points.
+
+The file `student_agent.py` must comply with every rule below. The validator refers to these rules by number in its
+messages.
 
 ### Rules
 
@@ -261,10 +266,11 @@ every rule below. The validator refers to these rules by number in its messages.
 | C-07 | `__init__` must return within 30 seconds, and every call to `step` must return within 2.0 seconds of wall-clock time. Time must be measured with `time.perf_counter()`, with a safety margin. |
 | C-08 | The peak memory use of the agent must remain below 500 MB. |
 | C-09 | Module-level code must be limited to imports, constants, and function and class definitions. Any other code executed at import time counts toward the 30-second initialization limit. A module-level loop that never ends causes the validator to report `FAIL`. |
-| C-10 | The agent must not access files or the network, and must not start additional threads or processes. The validator reports file access as a warning. The agent must not call `sys.exit()`, `quit()`, `os._exit()`, `exec`, `eval`, `compile` or `input`. A call to `sys.setrecursionlimit` must not set a limit above 10 000. The agent must not modify (monkey-patch) `helpers`, `numpy`, `constants` or `store`. |
+| C-10 | The agent must not access files or the network, and must not start additional threads or processes. The validator reports file access as a warning. The agent must not call `sys.exit()`, `quit()`, `os._exit()`, `exec`, `eval`, `compile` or `input`. A call to `sys.setrecursionlimit` must not set a limit above 10 000. The agent must not change the functions or values of `helpers`, `numpy`, `constants` or `store`, for example with `helpers.check_winner = my_function`. |
 | C-11 | The agent must play in either seat (`player` equal to 1 or 2) and must return only legal moves. Each illegal move, exception or late move counts as one strike. A fourth strike in a game forfeits that game. |
 | C-12 | The command `python validate_submission.py agents/student_agent.py`, run with Python 3.11, must print `RESULT: PASS`. The tournament applies the same checks. An agent that receives `FAIL` does not enter the tournament and receives the "poor" performance grade. |
-| C-13 | The agent must follow the rule set of the game. It must read `ALLOW_MOVES` and `WIN_LENGTH` from `constants`, must never assign them, and must never call `configure_rules`. It may return a board move only when `ALLOW_MOVES` is `True`, and it must evaluate lines of length `WIN_LENGTH`. The tournament uses the values announced in the handout. Support for other values is welcome but not required. |
+| C-13 | The agent must not assign `ALLOW_MOVES` or `WIN_LENGTH` and must not call `configure_rules`. |
+
 
 ### Permitted imports
 The import rule is defined in `allowed_imports.py`; the validator and the tournament both apply it. The file
@@ -291,10 +297,6 @@ times and strikes. A `PASS` confirms only that the tournament can run the agent;
 strength. If the sandboxed games cannot start on your system, add the option `--in_process`; the static checks are
 the same in both modes.
 
-### Submission procedure
-Each team submits exactly two files to the myCourses group assignment: `student_agent.py` and `authors.yaml`. The
-files must not be renamed and must not be compressed (for example, into a ZIP archive). The validator must print
-`RESULT: PASS` for `student_agent.py` before the files are submitted.
 
 ## Time and memory
 
@@ -305,7 +307,7 @@ files must not be renamed and must not be compressed (for example, into a ZIP ar
 | `step()` wall time, soft limit | 2.0 s per call, measured inside the agent process around the call |
 | `step()` wall time, hard limit | 10 s; exceeding it kills the agent process and forfeits the game |
 | Strikes tolerated per game | 3; each strike replaces the move by a random legal move; the 4th strike forfeits the game |
-| Memory (RSS) per agent process | 500 MB (the sandbox's cap is set 200 MB higher, to leave room for Python and numpy) |
+| Memory (RSS) per agent process | 500 MB|
 | stdout/stderr per agent per game | 1 MB, truncated afterwards |
 | Illegal move returned | counts as a strike; replaced by a random legal move |
 | Exception raised in `step()` | counts as a strike; replaced by a random legal move |
@@ -325,10 +327,7 @@ and then you should see, among other lines:
 ```
         Maximum resident set size (kbytes): 36100
 ```
-where the maximum resident set size is the most RAM that you have used (in kilobytes). Without `--strict` both agents
-run inside the simulator, so this number is the simulator and both agents together: an upper bound for your agent.
-On macOS, use `/usr/bin/time -l` instead; it prints the "maximum resident set size" in bytes. The validator also
-reports the peak memory of your agent's own process, on its `sandbox load` line (`rss … MB`).
+
 
 ### The grading command
 Before you submit, make sure your agent runs with the exact command we use for grading:
@@ -349,14 +348,13 @@ step over all games.
 **Can I use my own helper file?** No. You submit one file (C-03): put every function and class you need inside
 `student_agent.py`. An import of a file of your own fails the validator.
 
-**Can I change `constants.py`?** No (C-13). The tournament runs your file with its own copy of every other file, so a
+**Can I change `constants.py`?** No. The tournament runs your file with its own copy of every other file, so a
 change has no effect there, and assigning `ALLOW_MOVES` or `WIN_LENGTH` in your file fails the validator. Read the
 values; never write them.
 
 **Why did I get a strike?** Your `step()` did one of these:
 - took more than 2 s (shown as `soft_timeout`);
 - returned something that is not a legal `Move` (`illegal_move`);
-- returned a board move while `ALLOW_MOVES` is `False` (`move_not_allowed`);
 - raised an exception (`exception`).
 
 The referee then plays a random legal move for you. The simulator's log prints the flag next to the ply, and the

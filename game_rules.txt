@@ -9,7 +9,7 @@ THE BOARD AND THE PIECES
 
 1.  Two players play. Player 1 is Blue. Player 2 is Brown.
 2.  The board has 4 rows and 4 columns, so it has 16 squares.
-3.  One square is blocked. Nobody can ever put a piece there.
+3.  One square is blocked randomly. Nobody can ever put a piece there.
 4.  There are three sizes of pieces: small, medium and large.
 5.  Each player starts with 3 small, 3 medium and 3 large pieces. Then one piece of the same
     size is taken away from both players. So each player has 8 pieces, and both players have
@@ -86,7 +86,7 @@ POINTS
 
 RULES FOR YOUR AGENT
 
-34. Your agent has 2 seconds to choose each move. This value is set as a constant in the constants.py. You can increase it for testing. But make sure it works within 2 seconds
+34. Your agent has 2 seconds to choose each move. This value is set as a constant in the constants.py. You can increase it only for testing. To test with a longer limit, run the simulator with --soft_limit; the tournament always uses 2 seconds.
 35. Your agent gets a strike if it is slower than 2 seconds, picks a move that is not allowed,
     or has an error. The referee then plays a random move for it.
 36. 3 strikes in one game are forgiven. The 4th strike loses the game.
