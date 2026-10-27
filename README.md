@@ -348,9 +348,14 @@ step over all games.
 **Can I use my own helper file?** No. You submit one file (C-03): put every function and class you need inside
 `student_agent.py`. An import of a file of your own fails the validator.
 
-**Can I change `constants.py`?** No. The tournament runs your file with its own copy of every other file, so a
-change has no effect there, and assigning `ALLOW_MOVES` or `WIN_LENGTH` in your file fails the validator. Read the
-values; never write them.
+**Can I change `constants.py`?** Yes, you can edit its values while you write and test your code, but not for
+your submission. The tournament runs your file with its own copy of every other file, so your changes have no
+effect there. Assigning `ALLOW_MOVES` or `WIN_LENGTH` in your file fails the validator, so read these values in your
+code but never assign them. If any value changes, we will post an announcement on Ed.
+
+**Can I test with a longer time limit?** Yes. Add `--soft_limit` to the simulator, for example
+`--soft_limit 5`. The grading command and the tournament use 2 s, so your agent must return every `step()`
+within 2 s. 
 
 **Why did I get a strike?** Your `step()` did one of these:
 - took more than 2 s (shown as `soft_timeout`);
