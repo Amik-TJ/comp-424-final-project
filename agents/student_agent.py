@@ -27,4 +27,14 @@ class StudentAgent(Agent):
         # helpers.get_valid_moves / check_winner already respect them; your own
         # move generator and evaluation function must too.
         # TODO: replace with your search. Keep (time.perf_counter() - start) < STEP_TIME_LIMIT - margin.
-        return random_move(board, reserves, player)
+        moves = get_valid_moves(board, reserves, player)
+        for move in moves:
+            next_board, next_reserves = copy_state(board, reserves)
+            execute_move(next_board, next_reserves, player, move)
+
+            if check_winner(next_board, player) == player:
+                return move
+
+        return moves[0]
+
+
