@@ -27,7 +27,7 @@ import numpy as np
 import constants
 from allowed_imports import is_allowed
 
-MAX_FILE_BYTES = 2_000_000          # 2 MB; a larger file is a FAIL (C-01)
+MAX_FILE_BYTES = 5_000_000          # 5 MB; a larger file is a FAIL (C-01)
 GRADING_PYTHON = "3.11"             # the Python and numpy versions of the tournament machine (C-02)
 GRADING_NUMPY = "1.26"
 # Built-ins an agent must not call, unless the file defines a function of that name (an eval of its own).

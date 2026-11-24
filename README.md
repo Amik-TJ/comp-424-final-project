@@ -257,7 +257,7 @@ messages.
 
 | Rule | Requirement |
 |---|---|
-| C-01 | The file must be named exactly `student_agent.py`, must be encoded in UTF-8 without a byte-order mark, and must not exceed 2 MB. |
+| C-01 | The file must be named exactly `student_agent.py`, must be encoded in UTF-8 without a byte-order mark, and must not exceed 5 MB. |
 | C-02 | The file must be valid Python 3.11, the version used for grading. Syntax introduced in later versions, such as the type parameter syntax of Python 3.12 (PEP 695), is not permitted. The validator must be run with Python 3.11. |
 | C-03 | The file may import only the Python standard library, `numpy`, and the project modules `helpers`, `constants`, `store` and `agents.agent`. All other imports are prohibited, including other packages (for example `scipy`, `torch`, `numba` and `pandas`), the other project files (`world`, `simulator`, `runners` and `ui`), and files of your own. |
 | C-04 | The file must contain exactly one class decorated with `@register_agent("student_agent")`, with exactly this string. The class may have any name; `StudentAgent` is recommended. |
@@ -285,6 +285,37 @@ All other imports are prohibited: the other files of this project (`world`, `run
 `agents.greedy_agent`), packages that are not installed on the tournament machine (for example `torch`, `scipy` and
 `matplotlib`), and files of your own. A permitted import does not permit every use of the module: rule C-10 still
 prohibits file access, network access, and additional threads or processes.
+
+### Statistical methods and lookup tables
+Your agent may use a statistical method, for example a neural network or values learned by reinforcement learning.
+It may also use a lookup table, for example the best move for each of a set of known positions. Both are optional:
+an agent that uses neither remains fully valid. Three conditions apply:
+
+1. **From scratch.** You implement the method yourselves, for training and for playing, with only the Python
+   standard library and `numpy`, and you build any lookup table yourselves. Learning libraries such as PyTorch,
+   TensorFlow, JAX and scikit-learn are not permitted, even for training on your own computer.
+2. **Understood.** You understand the method that you implement.
+3. **Explained.** Your report explains the method and how you trained it, or how you built the lookup table.
+
+Every other rule still applies. The agent cannot read files (C-10) and you submit one code file, so trained values
+and lookup tables are constants inside `student_agent.py`, which may be up to 5 MB (C-01). Some hints:
+
+- **Store large data as a base64 string, not as a Python list or dict.** Use `base64.b64encode(array.tobytes())`
+  when you train or build the table, and `np.frombuffer(base64.b64decode(text), dtype=...)` in `__init__`. As
+  `float16`, 5 MB holds about 1.8 million values. Python needs far more memory to load a long list or dict than the
+  data itself. In our tests, a 5 MB file holding its data as a base64 string used 55 MB, a 5 MB dict of 19 000
+  positions used 200 MB, and a 5 MB list of 2.5 million small numbers exceeded the memory limit. macOS and Windows
+  do not enforce this limit, so such a file can pass on your computer and fail in the tournament.
+- **Key a lookup table with `helpers.state_key(board, reserves, player)`.** Two positions have the same key only if
+  they are identical.
+- **Do not decode the data with `pickle` or `np.load`.** A pickle written with numpy 2 does not load with the
+  tournament's numpy 1.26, and the validator reports `np.load` as file access.
+- **Train your model or build your table with a separate script** in the repository root that imports your code
+  from `agents.student_agent`. The script itself is not submitted. Running `student_agent.py` itself as a script
+  fails, because the file is already registered when `agents` is imported.
+- **Measure your step times with `--strict`.** The tournament runs numpy on one thread per agent (see
+  [The tournament machine](#the-tournament-machine)).
+- **Run the validator again** after you add trained values or a lookup table.
 
 ### Validation before submission
 Before submitting, run:
@@ -318,6 +349,17 @@ A late `step()` counts as a strike too. "Forfeit" means a loss for that agent an
 On macOS and Windows, `--strict` prints `WARNING: not available on this platform: …` once for each protection the
 system lacks, and the games still run; the tournament machine (Linux) enforces every limit.
 
+There is no separate mark deduction for memory use, but the tournament enforces the memory limit. Past it, memory
+allocations fail: a `MemoryError` raised in `step()` counts as a strike, and a crash of the agent process forfeits
+the game.
+
+### The tournament machine
+The tournament runs on Linux (Ubuntu 22.04) with Python 3.11 and numpy 1.26, on a 12th-generation Intel Core
+i7-12650H processor with 16 GB of RAM.
+
+In the tournament, and with `--strict`, numpy runs on one thread per agent. Without `--strict`, numpy may use every
+core of your computer, so large matrix products can run several times faster than they will in the tournament.
+
 ### Maximum memory measurements
 On Linux, measure using:
 ```bash
@@ -345,13 +387,25 @@ An agent that thinks for most of its 2 seconds at every move needs about that lo
 player 2 once, with the same 2-second limit. Time both seats. `--autoplay` does, and its summary shows your slowest
 step over all games.
 
-**Can I use my own helper file?** No. You submit one file (C-03): put every function and class you need inside
-`student_agent.py`. An import of a file of your own fails the validator.
+**Can I write my own functions?** Yes, as many as you need, but all of them must be inside `student_agent.py`. You
+submit one file (C-03), so you cannot use a helper file of your own: an import of a file of your own fails the
+validator.
+
+**Can I use a statistical method, such as a neural network or reinforcement learning?** Yes, if you implement it
+yourselves with only the standard library and `numpy`, understand it, and explain it in your report: see
+[Statistical methods and lookup tables](#statistical-methods-and-lookup-tables).
+
+**Can I use a lookup table?** Yes, under the same conditions. The agent cannot read files, so the table must be
+inside `student_agent.py` and must fit within its 5 MB limit: see
+[Statistical methods and lookup tables](#statistical-methods-and-lookup-tables).
+
+**What happens if my agent uses more than 500 MB of memory?** There is no separate mark deduction for memory use,
+but the tournament enforces the limit, and a crash of your agent's process forfeits the game: see
+[Limits](#limits). Measure your peak memory as shown in [Maximum memory measurements](#maximum-memory-measurements).
 
 **Can I change `constants.py`?** Yes, you can edit its values while you write and test your code, but not for
 your submission. The tournament runs your file with its own copy of every other file, so your changes have no
-effect there. Assigning `ALLOW_MOVES` or `WIN_LENGTH` in your file fails the validator, so read these values in your
-code but never assign them. If any value changes, we will post an announcement on Ed.
+effect there. Assigning `ALLOW_MOVES` or `WIN_LENGTH` in your file fails the validator, so read them in your code; never assign them in your file. If any value changes, we will post an announcement on Ed.
 
 **Can I test with a longer time limit?** Yes. Add `--soft_limit` to the simulator, for example
 `--soft_limit 5`. The grading command and the tournament use 2 s, so your agent must return every `step()`
